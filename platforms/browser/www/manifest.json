@@ -1,0 +1,11 @@
+{
+  "background_color": "#FFF",
+  "display": "standalone",
+  "name": "Med_Tpo",
+  "short_name": "Med_Tpo",
+  "version": "com.eps3.med_tpo",
+  "description": "Mediciones en Linea Med_Tpo.",
+  "author": "PhoneGap Team",
+  "icons": [],
+  "start_url": "index.html"
+}

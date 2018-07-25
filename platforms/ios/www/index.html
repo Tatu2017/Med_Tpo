@@ -1,0 +1,257 @@
+		<!DOCTYPE html>
+<html>
+    <head>
+    	<script type="text/javascript" src="js/jquery.min.js"></script>
+        <script src="js/mqttws31.js"></script>
+       <script src="js/steelseries-min.js">
+     
+       </script>
+        <meta charset="utf-8">
+               <title>EPS III</title>
+               <link rel="shortcut icon" href="img/CFE.png" >
+        	   <link rel="stylesheet" type="text/css" href="css/index.css" />
+
+
+		</head>
+			
+				<div style="position: relative; left:30px; top:30px; width: 60px; height: 60px;">
+         		<img src="img/logo.png" alt="Logotipo CFE"width="50" height="50"></div>
+         	
+            </div>
+			
+         <div style="position: absolute; width: 230px; height: 365px; top: 85px; left: 25px; background-color: #ff8800; color: #fff; padding: 15px;z-index: 2;">
+		
+                	<canvas id="canvasMulti1"></canvas>
+                    <canvas id="canvasMulti2"></canvas>
+                    <canvas id="canvasMulti3"></canvas>
+                    <canvas id="canvasMulti4"></canvas>
+                    <h4>Ing. Hugo A. Breceda </h4>
+                    <p id="demo"></p>
+             
+            </div>
+
+</div>
+<script >
+    var scroll = false;
+    var pot_act_u1;
+    var pot_act_u2;
+    var pot_act_neta_u1;
+    var pot_act_neta_u2;
+    var mqtt_conection=false;
+    var pub_conection=false;
+    var alu1=false;
+    var alu2=false;
+    var alDu1=false;
+    var alDu2=false;
+    var datos;
+    var Oldtime;
+    var tiempo1; 
+
+
+            var client = new Messaging.Client("test.mosquitto.org",8080,
+                "myclientid_" + parseInt(Math.random() * 100, 10));
+
+    client.onConnectionLost = function (responseObject) {
+       //alert("connection lost: " + responseObject.errorMessage);
+     alert("Error de Conexion ");
+          setTimeout(recarga, 10000);
+         
+        
+
+    };
+
+    client.onMessageArrived = function (message) {
+
+         datos=Array(message.payloadString);
+        datos =datos[0].split(','); 
+         
+   
+        var stringData=[]; 
+         var stringDataU1=[];
+    var stringDataU2=[];
+    var int98110=[];
+    var int98170=[];
+    var int41FU1=[];
+    var O86U1=[];
+    var TtripU1=[];
+    var int98270=[];
+    var int98280=[];
+    var int41FU2=[];
+    var O86U2=[];
+    var TtripU2=[];
+
+    pot_act_u1.setValue((datos[0]/100));
+     pot_act_u2.setValue((datos[2]/100));
+     pot_act_neta_u1.setValue((datos[4]/100));
+     pot_act_neta_u2.setValue((datos[5]/100));
+     stringData.push(datos[8],datos[9]);
+     int98110.push(datos[10]);
+     int98170.push(datos[11]);
+     int41FU1.push(datos[12]);
+     O86U1.push(datos[13]);
+     TtripU1.push(datos[14]);
+     int98270.push(datos[15]);
+     int98280.push(datos[16]);
+     int41FU2.push(datos[17]);
+     O86U2.push(datos[18]);
+     TtripU2.push(datos[19]);
+     stringDataU1.push(datos[0]/100);
+     stringDataU2.push(datos[2]/100);
+      document.getElementById("demo").innerHTML =stringData;
+
+      tiempo1=stringData;
+     
+
+  if(int98110=="false" && int98170=="false" && int41FU1=="false" && TtripU1=="true"&& O86U1=="true"){
+                if(alDu1==false){
+                    alert("Disparo Unidad 1: "+stringDataU1+" Mw."+ stringData);
+                    alDu1=true;}
+                  }
+                  else{alDu1=false;};
+   if(int98280=="false" && int98270=="false" && int41FU2=="false" && TtripU2=="true"&& O86U2=="true"){
+                if(alDu2==false){
+                    alert("Disparo Unidad 2: "+stringDataU2+" Mw."+ stringData);
+                    alDu2=true;}
+                  }
+                  else{alDu2=false;};                 
+
+ if (stringDataU1<=85 && stringDataU1>=75){ 
+          pot_act_u1.setLcdColor(steelseries.LcdColor.ORANGE);
+          pot_act_neta_u1.setLcdColor(steelseries.LcdColor.ORANGE);
+          if (alu1==false){
+          alert("Unidad 1: "+stringDataU1+" Mw.");
+          }
+          alu1=true;
+         }
+          else {alu1=false;};
+
+      if (stringDataU1<75)  {pot_act_u1.setLcdColor(steelseries.LcdColor.YELLOW);
+            pot_act_neta_u1.setLcdColor(steelseries.LcdColor.YELLOW);
+              };
+
+         if (stringDataU2<=85 && stringDataU2>=75){ 
+          pot_act_u2.setLcdColor(steelseries.LcdColor.ORANGE);
+          pot_act_neta_u2.setLcdColor(steelseries.LcdColor.ORANGE);
+          if (alu2==false){
+          alert("Unidad 2: "+stringDataU1+" Mw.");
+          }
+          alu2=true;
+         }
+          else {alu2=false;};
+
+          if (stringDataU2<75)  {pot_act_u2.setLcdColor(steelseries.LcdColor.YELLOW);
+            pot_act_neta_u2.setLcdColor(steelseries.LcdColor.YELLOW);
+              }  
+  
+      
+    };
+
+     var options = {
+        timeout: 3,
+        onSuccess: function () {
+            client.subscribe('tpomonitor', {qos: 0});
+           mqtt_conection=true;        
+                   },
+        onFailure: function (message) {
+         
+            mqtt_conection=false; 
+            setTimeout(recarga, 10000);
+        
+
+        }
+    };
+    		
+		    function recarga(){ location.reload();}
+	   
+            function init() {
+
+        
+        pot_act_u1 = new steelseries.DisplayMulti('canvasMulti1', {
+                            width: 230,
+                            height: 65,
+                            unitString: "    Mw ",
+                            unitStringVisible: true,
+                            headerString: "Potencia Bruta U1.",
+                            headerStringVisible: true,
+                            detailString: "Valor Anterior: ",
+                            detailStringVisible: true,
+                            linkOldValue: false,
+                            oldValue: 99.9
+                            });
+        pot_act_u2 = new steelseries.DisplayMulti('canvasMulti2', {
+                            width: 230,
+                            height: 65,
+                            unitString: "    Mw ",
+                            unitStringVisible: true,
+                            headerString: "Potencia Bruta U2.",
+                            headerStringVisible: true,
+                            detailString: "Valor Anterior: ",
+                            detailStringVisible: true,
+                            linkOldValue: false,
+                            oldValue: 99.9
+                            });
+        pot_act_neta_u1= new steelseries.DisplayMulti('canvasMulti3', {
+                            width: 230,
+                            height: 65,
+                            unitString: "    Mw ",
+                            unitStringVisible: true,
+                            headerString: "Potencia Neta U1.",
+                            headerStringVisible: true,
+                            detailString: "Valor Anterior: ",
+                            detailStringVisible: true,
+                            linkOldValue: false,
+                            oldValue: 99.9
+                            });
+        pot_act_neta_u2 =  new steelseries.DisplayMulti('canvasMulti4', {
+                            width: 230,
+                            height: 65,
+                            unitString: "    Mw ",
+                            unitStringVisible: true,
+                            headerString: "Potencia Neta U2.",
+                            headerStringVisible: true,
+                            detailString: "Valor Anterior: ",
+                            detailStringVisible: true,
+                            linkOldValue: false,
+                            oldValue: 99.9
+                            });
+     
+   
+    
+         client.connect(options);
+
+   setInterval (function(){
+ if (tiempo1!==Oldtime){
+  pub_conection=true;
+
+      tiempo1=Oldtime;
+   
+   }
+     else if (tiempo1==Oldtime){ 
+      pub_conection=false;
+
+      Oldtime=tiempo1;
+     }
+
+
+
+if (mqtt_conection==true && pub_conection==true){  
+            pot_act_u1.setLcdColor(steelseries.LcdColor.BLUE);
+            pot_act_u2.setLcdColor(steelseries.LcdColor.BLUE);
+            pot_act_neta_u1.setLcdColor(steelseries.LcdColor.BLUE);
+            pot_act_neta_u2.setLcdColor(steelseries.LcdColor.BLUE);
+          }
+         else if (mqtt_conection==true && pub_conection==false){  
+            pot_act_u1.setLcdColor(steelseries.LcdColor.GRAY);
+            pot_act_u2.setLcdColor(steelseries.LcdColor.GRAY);
+            pot_act_neta_u1.setLcdColor(steelseries.LcdColor.GRAY);
+            pot_act_neta_u2.setLcdColor(steelseries.LcdColor.GRAY);
+          }
+        
+  },10000);
+    }
+                        </script>
+					
+                         <body onload="init();" >
+
+  </body>
+</html>
