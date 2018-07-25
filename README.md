@@ -1,10 +1,10 @@
-# A Blank PhoneGap App
+# Tpo_med
 
-## Usage
+## Med
 
-### PhoneGap CLI
+### tpo
 
-    $ phonegap create my-app --template blank
+  
 
 ### Desktop
 
